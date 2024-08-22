@@ -1,0 +1,5 @@
+# Video Captures
+*.h264
+
+# pycache
+__pycache__/
