@@ -1,6 +1,5 @@
 import RPi.GPIO as GPIO
 
-
 # GPIO VALUES
 HIGH, LOW = GPIO.HIGH, GPIO.LOW
 LED1, LED2, LED3, LED4 = 26, 16, 20, 21
@@ -34,14 +33,6 @@ def SWT_PUSHED():
         if swt_val[i] == 1:
             return i+1
     return 0
-'''
-def LED_CONTROL(led_idx, flag):
-    if isinstance(led_idx, int):
-        GPIO.output(LEDs[led_idx], flag)
-    else:
-        for led_i in led_idx:
-            GPIO.output(LEDs[led_i], flag)
-'''
 
 def LED_CONTROL(led_on=[], led_off=[]):
     for led_idx in led_on:
