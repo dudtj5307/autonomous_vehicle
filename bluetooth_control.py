@@ -1,9 +1,7 @@
 import serial
 import threading
 
-import RPi.GPIO as GPIO
 import time
-import booting_music
 
 from controls import controls
 
@@ -11,70 +9,56 @@ from controls import controls
 bleSerial = serial.Serial("/dev/ttyS0", baudrate=9600, timeout=1.0)
 gData = ""
 
-# GPIO VALUES
-HIGH, LOW = GPIO.HIGH, GPIO.LOW
-FRONT, BACK = 0, 1
-
-BUZZER = 12
-
-# GPIO SETUPS
-GPIO.setwarnings(False)
-GPIO.setmode(GPIO.BCM)
+# Motor Speed Values
+MOTOR_SPD_DFT = 40
+MOTOR_SPD_MIN = 20
+MOTOR_SPD_MAX = 60
 
 def serial_thread():
     global gData
     while True:
-        newData = bleSerial.readline().decode()
+        newData = bleSerial.readline().decode().strip()
         if newData != "":
             gData = newData
+            print(f"[{gData}]")
         if "k" in gData: break
         
             
 def main():
     global gData
-    last_gData = ""             # Save gData info
-    speed, last_speed = 30, 30  # Save speed info
-    dirFlag = FRONT             # Save moving direction (FRONT: 0, BACK: 1)
+    
+    last_gData = ""
+    speed = MOTOR_SPD_DFT 
+    last_speed = MOTOR_SPD_DFT    # Init
+    
+    dirFlag = controls.FRONT      # Moving direction (FRONT/BACK)
     try:
         while True:
-            if "FASTER" in gData:
-                speed = min(60, speed+10)
+            # Speed Change
+            if gData == "FASTER":
+                speed = min(MOTOR_SPD_MAX, speed+10)
+                gData = last_gData
+            elif gData == "SLOWER":
+                speed = max(MOTOR_SPD_MIN, speed-10)
                 gData = last_gData
 
-            elif "SLOWER" in gData:
-                speed = max(20, speed-10)
-                gData = last_gData
-
+            # Change in Speed or Action
             if gData != last_gData or speed != last_speed:
-                if "STOP" in gData: 
+                if gData == "STOP": 
                     controls.moveMotor_stop()
-                    controls.LED_CONTROL([0,1,2,3], LOW)
-                    
-                elif "GO" in gData:
+                elif gData == "GO":
                     controls.moveMotor_front(speed)
-                    controls.LED_CONTROL([0,1], HIGH)
-                    controls.LED_CONTROL([2,3], LOW)
-                    dirFlag = FRONT
-                    
-                elif "BACK" in gData:
+                    dirFlag = controls.FRONT
+                elif gData == "BACK":
                     controls.moveMotor_back(speed)
-                    controls.LED_CONTROL([0,1], LOW)
-                    controls.LED_CONTROL([2,3], HIGH)
-                    dirFlag = BACK
-                    
-                elif "LEFT" in gData:
+                    dirFlag = controls.BACK
+                elif gData == "LEFT":
                     controls.moveMotor_left(speed, dirFlag)
-                    controls.LED_CONTROL([0,2], HIGH)
-                    controls.LED_CONTROL([1,3], LOW)
-                    
-                elif "RIGHT" in gData:
+                elif gData == "RIGHT":
                     controls.moveMotor_right(speed, dirFlag)
-                    controls.LED_CONTROL([0,2], LOW)
-                    controls.LED_CONTROL([1,3], HIGH)
-
-                elif "k" in gData or "kill" in gData:
+                elif gData == "k" or gData == "kill":
                     break
-
+                # Save gData, speed
                 last_gData = gData
                 last_speed = speed
 
@@ -91,6 +75,5 @@ if __name__ == '__main__':
     main()
     controls.cleanup_GPIOs()
     bleSerial.close()
-    GPIO.cleanup()
 
 
