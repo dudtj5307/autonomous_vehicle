@@ -3,16 +3,21 @@ import threading
 
 import time
 
-from controls import controls
+import imgCapture
+from controls import gpios
 
 # bluetooth Serial
 bleSerial = serial.Serial("/dev/ttyS0", baudrate=9600, timeout=1.0)
-gData = ""
+
+# Image Saving Path
+imgCapture.setSaveFolderPath("/home/pi/autonomous_vehicle2/img")
 
 # Motor Speed Values
 MOTOR_SPD_DFT = 40
 MOTOR_SPD_MIN = 20
 MOTOR_SPD_MAX = 60
+
+gData = ""
 
 def serial_thread():
     global gData
@@ -26,12 +31,10 @@ def serial_thread():
             
 def main():
     global gData
-    
     last_gData = ""
     speed = MOTOR_SPD_DFT 
     last_speed = MOTOR_SPD_DFT    # Init
-    
-    dirFlag = controls.FRONT      # Moving direction (FRONT/BACK)
+    dirFlag = gpios.FRONT      # Moving direction (FRONT/BACK)
     try:
         while True:
             # Speed Change
@@ -45,35 +48,39 @@ def main():
             # Change in Speed or Action
             if gData != last_gData or speed != last_speed:
                 if gData == "STOP": 
-                    controls.moveMotor_stop()
+                    gpios.moveMotor_stop()
                 elif gData == "GO":
-                    controls.moveMotor_front(speed)
-                    dirFlag = controls.FRONT
+                    gpios.moveMotor_front(speed)
+                    dirFlag = gpios.FRONT
                 elif gData == "BACK":
-                    controls.moveMotor_back(speed)
-                    dirFlag = controls.BACK
+                    gpios.moveMotor_back(speed)
+                    dirFlag = gpios.BACK
                 elif gData == "LEFT":
-                    controls.moveMotor_left(speed, dirFlag)
+                    gpios.moveMotor_left(speed, dirFlag)
                 elif gData == "RIGHT":
-                    controls.moveMotor_right(speed, dirFlag)
+                    gpios.moveMotor_right(speed, dirFlag)
                 elif gData == "k" or gData == "kill":
                     break
                 # Save gData, speed
                 last_gData = gData
                 last_speed = speed
-
+                
+            # Capture image and motion
+            if last_gData in ['GO','LEFT','RIGHT']:
+                imgCapture.capture(last_gData, timeDelay=0.4, timeStamp=True)
+                
             time.sleep(0.1)
-            if controls.SWT_PUSHED():
+            if gpios.SWT_PUSHED():
                 gData="STOP"
 
     except KeyboardInterrupt:
-        controls.cleanup_GPIOs()
+        gpios.cleanup_GPIOs()
 
 if __name__ == '__main__':
     task1 = threading.Thread(target = serial_thread)
     task1.start()
     main()
-    controls.cleanup_GPIOs()
+    gpios.cleanup_GPIOs()
     bleSerial.close()
 
 

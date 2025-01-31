@@ -1,5 +1,10 @@
-# Video Captures
+# Ignore Video
 *.h264
 
-# pycache
+# Ignore Folders
 __pycache__/
+
+old/
+img/
+video/
+
