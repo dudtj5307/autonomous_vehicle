@@ -12,7 +12,7 @@ gData = ""
 
 # Image Saving Path
 imgCapture.setSaveFolderPath("/home/pi/autonomous_vehicle2/img")
-IMAGE_CAPTURE_INTERVAL = 0.4
+IMAGE_CAPTURE_INTERVAL = 0.5
 
 # Motor Speed Values
 MOTOR_SPD_DFT = 40
@@ -34,7 +34,6 @@ def main():
     last_gData = ""
     speed = MOTOR_SPD_DFT 
     last_speed = MOTOR_SPD_DFT    # Init
-    start = time.time()
     try:
         while True:
             # Speed Change
@@ -53,14 +52,14 @@ def main():
                 elif gData == "LEFT" : gpios.MOTOR.move_left(speed)
                 elif gData == "RIGHT": gpios.MOTOR.move_right(speed)
                 elif gData == "kill" : break
-                
+                 
                 # Save gData, speed
                 last_gData = gData
                 last_speed = speed
                 
             # Capture image and motion
             if last_gData in ['GO','LEFT','RIGHT']:
-                imgCapture.capture(last_gData, interval=IMAGE_CAPTURE_INTERVAL)
+                imgCapture.capture(last_gData, interval=IMAGE_CAPTURE_INTERVAL, timeStamp=True)
                 
             time.sleep(0.05)
             if gpios.SWT_PUSHED():
