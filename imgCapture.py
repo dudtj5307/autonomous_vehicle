@@ -15,7 +15,7 @@ if not os.path.exists(folder_path_img_date):
     os.makedirs(folder_path_img_date)
 
 # Initialization
-start, end = time.time(), time.time()
+last_time = 0
 
 picam2 = Picamera2()
 capture_config = picam2.create_preview_configuration(transform=Transform(hflip=1, vflip=1),
@@ -28,19 +28,25 @@ def setSaveFolderPath(folder_path=folder_path_img):
     if not os.path.exists(folder_path_img_date):
         os.makedirs(folder_path_img_date)
 
-def capture(motion, timeDelay=0.0, timeStamp=False):
-    global start, end
-    file_name = f"{folder_path_img_date}/{datetime.now().strftime('%y%m%d_%H%M%S%f')}"[:-3]+f"_{motion}.jpg"
-    start = time.time()
-    if start - end < timeDelay:
+def capture(motion, interval=0.5, timeStamp=False):
+    global last_time
+    # Check Interval
+    now_time = time.time()
+    if now_time - last_time < interval:
         return
+    
+    # Capture Image
     image = picam2.capture_array()
     image = Image.fromarray(image)
     if image.mode == 'RGBA':
         image = image.convert('RGB')
+    file_name = f"{folder_path_img_date}/{datetime.now().strftime('%y%m%d_%H%M%S%f')}"[:-3]+f"_{motion}.jpg"
     image.save(file_name)
-    end = time.time()
-    if timeStamp: print(f'{end-start:2f}')
+
+    # Save Interval
+    last_time = now_time
+    # Print Time Stamp
+    if timeStamp: print("finished:", now_time)
 
 if __name__ == "__main__":
     for i in range(10):
