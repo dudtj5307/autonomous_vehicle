@@ -3,8 +3,8 @@ from libcamera import Transform
 
 import os
 import time
-from PIL import Image
 from datetime import datetime
+from PIL import Image
 
 # Saving folder
 current_path = os.getcwd()
@@ -28,25 +28,28 @@ def setSaveFolderPath(folder_path=folder_path_img):
     if not os.path.exists(folder_path_img_date):
         os.makedirs(folder_path_img_date)
 
-def capture(motion, interval=0.5, timeStamp=False):
+def capture(motion, interval=0.5, imgSave=False, timeStamp=False):
     global last_time
+    
     # Check Interval
     now_time = time.time()
-    if now_time - last_time < interval:
+    if now_time - last_time < interval - 0.02:  # 0.02s Compensation Value
         return
+    last_time = now_time
     
     # Capture Image
     image = picam2.capture_array()
     image = Image.fromarray(image)
-    if image.mode == 'RGBA':
-        image = image.convert('RGB')
-    file_name = f"{folder_path_img_date}/{datetime.now().strftime('%y%m%d_%H%M%S%f')}"[:-3]+f"_{motion}.jpg"
-    image.save(file_name)
+    if image.mode == 'RGBA': image = image.convert('RGB')
 
-    # Save Interval
-    last_time = now_time
+    # Save Image
+    file_name = f"{folder_path_img_date}/{datetime.now().strftime('%y%m%d_%H%M%S%f')}"[:-3]+f"_{motion}.jpg"
+    if imgSave: image.save(file_name)
+
     # Print Time Stamp
     if timeStamp: print("finished:", now_time)
+    
+    return image
 
 if __name__ == "__main__":
     for i in range(10):

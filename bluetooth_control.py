@@ -6,13 +6,13 @@ import time
 import imgCapture
 from controls import gpios
 
-# bluetooth Serial
-bleSerial = serial.Serial("/dev/ttyS0", baudrate=9600, timeout=1.0)
+# Bluetooth Serial
+BLTSerial = serial.Serial("/dev/ttyS0", baudrate=9600, timeout=1.0)
 gData = ""
 
-# Image Saving Path
+# Image Capture
 imgCapture.setSaveFolderPath("/home/pi/autonomous_vehicle2/img")
-IMAGE_CAPTURE_INTERVAL = 0.5
+CAPTURE_INTERVAL = 1
 
 # Motor Speed Values
 MOTOR_SPD_DFT = 40
@@ -22,7 +22,7 @@ MOTOR_SPD_MAX = 60
 def serial_thread():
     global gData
     while True:
-        newData = bleSerial.readline().decode().strip()
+        newData = BLTSerial.readline().decode().strip()
         if newData != "":
             gData = newData
             print(f"[{gData}]")
@@ -33,7 +33,7 @@ def main():
     global gData
     last_gData = ""
     speed = MOTOR_SPD_DFT 
-    last_speed = MOTOR_SPD_DFT    # Init
+    last_speed = speed    # Init
     try:
         while True:
             # Speed Change
@@ -52,27 +52,27 @@ def main():
                 elif gData == "LEFT" : gpios.MOTOR.move_left(speed)
                 elif gData == "RIGHT": gpios.MOTOR.move_right(speed)
                 elif gData == "kill" : break
-                 
+                
                 # Save gData, speed
                 last_gData = gData
                 last_speed = speed
                 
             # Capture image and motion
             if last_gData in ['GO','LEFT','RIGHT']:
-                imgCapture.capture(last_gData, interval=IMAGE_CAPTURE_INTERVAL, timeStamp=True)
+                imgCapture.capture(last_gData, interval=CAPTURE_INTERVAL, imgSave=True, timeStamp=False)
                 
             time.sleep(0.05)
             if gpios.SWT_PUSHED():
                 gData="STOP"
 
     except KeyboardInterrupt:
-        gpios.cleanup_GPIOs()
+        #gpios.cleanup_GPIOs()
+        #BLTSerial.close()
+        pass
 
 if __name__ == '__main__':
     task1 = threading.Thread(target = serial_thread)
     task1.start()
     main()
     gpios.cleanup_GPIOs()
-    bleSerial.close()
-
-
+    BLTSerial.close()
