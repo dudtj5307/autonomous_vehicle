@@ -14,7 +14,7 @@ SWITCHs = [SWT1, SWT2, SWT3, SWT4]
 GPIO.setwarnings(False)
 GPIO.setmode(GPIO.BCM)
 
-for switch in SWITCHs:          GPIO.setup(switch, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
+for switch in SWITCHs: GPIO.setup(switch, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
 
 MOTOR = motors.MOTORS()
 

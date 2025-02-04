@@ -24,7 +24,7 @@ picam2.configure(capture_config)
 picam2.start()
 
 def setSaveFolderPath(folder_path=folder_path_img):
-    folder_path_img_date = os.path.join(folder_path_img, datetime.now().strftime('%y%m%d'))
+    folder_path_img_date = os.path.join(folder_path, datetime.now().strftime('%y%m%d'))
     if not os.path.exists(folder_path_img_date):
         os.makedirs(folder_path_img_date)
 
@@ -52,7 +52,8 @@ def capture(motion, interval=0.5, imgSave=False, timeStamp=False):
     return image
 
 if __name__ == "__main__":
-    for i in range(10):
+    for i in range(100):
         start = time.time()
-        capture("GO")
+        capture("GO", interval=0.03)
+        print(time.time() - start)
     pass
