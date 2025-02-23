@@ -6,8 +6,6 @@ import time
 from datetime import datetime
 from PIL import Image
 
-import torch
-
 # Saving folder
 current_path = os.getcwd()
 #folder_path_img = "/home/pi/autonomous_vehicle/img"
@@ -57,5 +55,5 @@ if __name__ == "__main__":
     for i in range(100):
         start = time.time()
         capture("GO", interval=0.03)
-        #print(time.time() - start)
+        print(time.time() - start)
     pass
